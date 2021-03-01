@@ -1,7 +1,5 @@
-<div style="display: table;">
-
+<div *ngIf="this.tiles" style="display: table; border: 1px solid darkgray;">
   <div *ngFor="let row of this.tiles" style="display: table-row;">
-    <div *ngFor="let col of row" [ngStyle]="{ 'background-color': col.color, 'border-color': col.color }" class="tile-div">
-    </div>
+    <drs-tile class="tile-div" *ngFor="let col of row" [tile]="col"></drs-tile>
   </div>
 </div>

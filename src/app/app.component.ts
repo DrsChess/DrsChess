@@ -1,27 +1,23 @@
 import { Component } from '@angular/core';
+import { AppService } from './app.service';
 import { Tile } from './domain/tile';
+import { takeUntil } from 'rxjs/operators';
+import { Unsubscriber } from './core/unsubscriber';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
-export class AppComponent {
+export class AppComponent extends Unsubscriber {
   title = 'DrsChess';
 
-  tiles: Tile[][] = [];
+  tiles: Tile[][];
 
-  constructor() {
-    this.resetBoard();
-  }
-
-  private resetBoard(): void {
-    this.tiles = [];
-    for (let row = 0; row < 5; row++) {
-      this.tiles.push([]);
-      for (let col = 0; col < 5; col++) {
-        this.tiles[row].push(new Tile(row, col));
-      }
-    }
+  constructor(private appService: AppService) {
+    super();
+    this.appService.tiles
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe((tiles) => (this.tiles = tiles));
   }
 }

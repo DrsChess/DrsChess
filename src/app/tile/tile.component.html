@@ -1,0 +1,3 @@
+<div *ngIf="this.tile" [ngStyle]="{ 'background-color': this.tile.color, 'border-color': this.tile.color }" class="tile-div" (click)="this.onClick()">
+  <div *ngIf="this.tile.hasPlayer" class="tile-player"></div>
+</div>

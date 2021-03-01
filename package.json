@@ -20,8 +20,10 @@
     "@angular/platform-browser-dynamic": "~11.2.3",
     "@angular/router": "~11.2.3",
     "angular-cli-ghpages": "^1.0.0-rc.1",
-    "rxjs": "~6.6.0",
+    "rxjs": "^6.6.6",
     "tslib": "^2.0.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-microsoft-contrib": "^6.2.0",
     "zone.js": "~0.11.3"
   },
   "devDependencies": {
