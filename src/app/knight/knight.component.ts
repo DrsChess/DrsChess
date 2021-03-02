@@ -1,5 +1,4 @@
 import { Component, Input } from '@angular/core';
-import { environment } from 'src/environments/environment';
 import { Knight } from '../domain/knight.model';
 
 @Component({
@@ -9,6 +8,4 @@ import { Knight } from '../domain/knight.model';
 })
 export class KnightComponent {
   @Input() knight: Knight;
-
-  imageUrl = `${environment.assets}/Knight.PNG`;
 }

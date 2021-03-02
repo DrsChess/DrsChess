@@ -96,11 +96,10 @@ export class AppService {
   }
 
   private resetBoard(): void {
-    this.knights$
-      .pipe(take(1))
-      .subscribe((knights) =>
-        knights.forEach((knight) => (knight.ready = false))
-      );
+    this.knightE.ready = false;
+    this.knightN.ready = false;
+    this.knightW.ready = false;
+    this.knightS.ready = false;
 
     const tiles: Tile[][] = [];
     for (let row = 0; row < 5; row++) {
