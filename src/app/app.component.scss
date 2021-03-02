@@ -5,3 +5,20 @@
   max-width: 152px;
   display: table-cell;
 }
+
+.board {
+  display: table;
+  border: 1px solid darkgray;
+
+  position: relative;
+  margin-top: 90px;
+  margin-left: 90px;
+}
+
+.drs-knight {
+  position: absolute;
+  -webkit-transition: all 1.5s ease-out;
+  -o-transition: all 1.5s ease-out;
+  -moz-transition: all 1.5s ease-out;
+  transition: all 1.5s ease-out;
+}

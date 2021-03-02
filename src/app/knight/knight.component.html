@@ -1,0 +1,4 @@
+<div *ngIf="this.knight" style="position: relative;">
+  <img class="drs-knight-image" src='../../assets/Knight.PNG'>
+  <div *ngIf="this.knight.steps" style="position: absolute; z-index: 999;">{{ this.knight.steps }}</div>
+</div>
