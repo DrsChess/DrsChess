@@ -17,8 +17,17 @@
 
 .drs-knight {
   position: absolute;
+}
+
+.animate {
   -webkit-transition: all 1.5s ease-out;
   -o-transition: all 1.5s ease-out;
   -moz-transition: all 1.5s ease-out;
   transition: all 1.5s ease-out;
+}
+
+.drs-sidepane {
+  position: absolute;
+  top: 20px;
+  left: 1000px;
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { interval, Observable, ReplaySubject } from 'rxjs';
-import { finalize, map, take } from 'rxjs/operators';
+import { interval, Observable, ReplaySubject, Subject } from 'rxjs';
+import { take, takeUntil, tap } from 'rxjs/operators';
+import { AppComponent } from './app.component';
 import { Direction } from './domain/direction.enum';
 import { Knight } from './domain/knight.model';
 import { Tile } from './domain/tile';
@@ -13,6 +14,14 @@ export class AppService {
   private tiles$: ReplaySubject<Tile[][]>;
   private knights$: ReplaySubject<Knight[]>;
 
+  private knightW: Knight;
+  private knightN: Knight;
+  private knightE: Knight;
+  private knightS: Knight;
+
+  private playerClickAllowed: boolean;
+  private playerMoves: number[];
+
   get tiles(): Observable<Tile[][]> {
     return this.tiles$.asObservable();
   }
@@ -21,40 +30,104 @@ export class AppService {
     return this.knights$.asObservable();
   }
 
-  readonly knightW: Knight = new Knight(Direction.W);
-  readonly knightN: Knight = new Knight(Direction.N);
-  readonly knightE: Knight = new Knight(Direction.E);
-  readonly knightS: Knight = new Knight(Direction.S);
-
   constructor() {
     this.tiles$ = new ReplaySubject<Tile[][]>(1);
 
     this.knights$ = new ReplaySubject<Knight[]>(1);
 
-    this.knightW = new Knight(Direction.W);
-    this.knightN = new Knight(Direction.N);
-    this.knightE = new Knight(Direction.E);
-    this.knightS = new Knight(Direction.S);
-
-    this.knights$.next([
-      this.knightW,
-      this.knightN,
-      this.knightE,
-      this.knightS,
-    ]);
-
     this.resetBoard();
   }
 
   public onClick(tile: Tile) {
-    this._tiles.forEach((rows) => {
-      rows.forEach((t) => {
-        t.hasPlayer = t === tile;
+    if (this.playerClickAllowed) {
+      this._tiles.forEach((rows) => {
+        rows.forEach((t) => {
+          t.hasPlayer = t === tile;
+        });
       });
-    });
+    }
   }
 
-  public setupGame(): void {
+  public startGame(component: AppComponent): Observable<number> {
+    this.resetBoard();
+    this.setupGame();
+
+    const kill$ = new Subject<void>();
+    kill$.pipe(takeUntil(kill$)).subscribe(() => kill$.complete());
+
+    const start = 5;
+
+    return interval(1000).pipe(
+      take(30),
+      takeUntil(kill$),
+      tap((v) => {
+        if (v < start) {
+          this.playerClickAllowed = true;
+
+          component.setStatusText(
+            `Find your starting position! Seconds left: ${5 - v}`
+          );
+          return;
+        }
+        if (v === start) {
+          this.playerClickAllowed = false;
+
+          const playerPositionStart = this.getPlayerPosition();
+          if (playerPositionStart.length === 0) {
+            // player did not click, shower slimes on them
+            kill$.next();
+            component.setStatusText(
+              `You did not choose a starting location. Stopping game.`
+            );
+            return;
+          }
+
+          component.setStatusText(`Moving North and South`);
+          this.knightS.move();
+          this.knightN.move();
+          return;
+        }
+        if (v === start + 2) {
+          component.setStatusText(`Explosion`);
+          return;
+        }
+        if (v >= start + 3 && v < start + 8) {
+          this.playerClickAllowed = true;
+
+          component.setStatusText(
+            `Move your first amount of steps! Seconds left: ${
+              5 + (start + 3 - v)
+            }`
+          );
+          return;
+        }
+        if (v === start + 8) {
+          this.playerClickAllowed = false;
+
+          component.setStatusText(`Moving East and West`);
+          this.knightE.move();
+          this.knightW.move();
+          return;
+        }
+        if (v === start + 10) {
+          component.setStatusText(`Explosion`);
+          return;
+        }
+        if (v >= start + 11) {
+          this.playerClickAllowed = true;
+
+          component.setStatusText(
+            `Move your second amount of steps! Seconds left: ${
+              5 + (start + 11 - v)
+            }`
+          );
+          return;
+        }
+      })
+    );
+  }
+
+  private setupGame(): void {
     const position = Math.round(Math.random());
 
     let steps = this.generate2DifferentRandomNumbers(1, 3);
@@ -66,20 +139,8 @@ export class AppService {
 
     this.knightS.init(position, steps[0]);
     this.knightN.init((position + 1) % 2, steps[1]);
-  }
 
-  public startGame(): Observable<number> {
-    this.resetBoard();
-    this.setupGame();
-
-    return interval(1000).pipe(
-      take(5),
-      finalize(() => {
-        this.knightS.move();
-        this.knightN.move();
-      }),
-      map((v) => 5 - v - 1)
-    );
+    this.playerMoves = this.generate2DifferentRandomNumbers(2, 4);
   }
 
   private generate2DifferentRandomNumbers(from: number, to: number): number[] {
@@ -96,10 +157,19 @@ export class AppService {
   }
 
   private resetBoard(): void {
-    this.knightE.ready = false;
-    this.knightN.ready = false;
-    this.knightW.ready = false;
-    this.knightS.ready = false;
+    this.playerClickAllowed = false;
+
+    this.knightW = new Knight(Direction.W);
+    this.knightN = new Knight(Direction.N);
+    this.knightE = new Knight(Direction.E);
+    this.knightS = new Knight(Direction.S);
+
+    this.knights$.next([
+      this.knightW,
+      this.knightN,
+      this.knightE,
+      this.knightS,
+    ]);
 
     const tiles: Tile[][] = [];
     for (let row = 0; row < 5; row++) {
@@ -115,5 +185,17 @@ export class AppService {
 
   private randomIntFromInterval(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+  }
+
+  private getPlayerPosition(): number[] {
+    for (let row = 0; row < this._tiles.length; row++) {
+      for (let col = 0; col < this._tiles[row].length; col++) {
+        if (this._tiles[row][col].hasPlayer) {
+          return [row, col];
+        }
+      }
+    }
+
+    return [];
   }
 }

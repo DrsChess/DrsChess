@@ -40,11 +40,25 @@ export class Knight {
   public ready: boolean;
   public position: Position;
 
+  get target(): number {
+    switch (this.steps) {
+      case Direction.W:
+      case Direction.N:
+        return 3 - this.steps;
+      case Direction.E:
+      case Direction.S:
+        return 1 + this.steps;
+    }
+    return 0;
+  }
+
   constructor(public readonly facing: Direction) {}
 
   public init(index: number, steps: number): void {
     // tslint:disable-next-line: no-non-null-assertion
-    this.position = Knight.knightPositions.get(this.facing)![index];
+    const pos = Knight.knightPositions.get(this.facing)![index];
+
+    this.position = new Position(pos.top, pos.left);
     this.steps = steps;
 
     this.ready = true;
@@ -68,8 +82,15 @@ export class Knight {
 
     interval(1500 / this.steps)
       .pipe(take(this.steps))
-      .subscribe(() => {
-        this.steps -= 1;
-      });
+      .subscribe(
+        () => {
+          this.steps -= 1;
+        },
+        () => {},
+        () =>
+          timer(1000)
+            .pipe(take(1))
+            .subscribe(() => (this.ready = false))
+      );
   }
 }

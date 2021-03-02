@@ -21,7 +21,8 @@ export class AppComponent extends Unsubscriber implements OnInit {
   knightE: Knight;
   knightS: Knight;
 
-  secondsToStart: number;
+  statusText: string;
+  running: boolean;
 
   constructor(private appService: AppService) {
     super();
@@ -29,17 +30,31 @@ export class AppComponent extends Unsubscriber implements OnInit {
       .pipe(takeUntil(this.onDestroy$))
       .subscribe((tiles) => (this.tiles = tiles));
 
-    this.appService.knights.pipe(takeUntil(this.onDestroy$)).subscribe((_) => {
-      this.knightW = this.appService.knightW;
-      this.knightN = this.appService.knightN;
-      this.knightE = this.appService.knightE;
-      this.knightS = this.appService.knightS;
-    });
+    this.appService.knights
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe((knights) => {
+        this.knightW = knights[0];
+        this.knightN = knights[1];
+        this.knightE = knights[2];
+        this.knightS = knights[3];
+      });
   }
 
   ngOnInit() {}
 
   public startGame(): void {
-    this.appService.startGame().subscribe((v) => (this.secondsToStart = v));
+    if (this.running) {
+      return;
+    }
+    this.running = true;
+    this.appService.startGame(this).subscribe(
+      () => {},
+      () => {},
+      () => (this.running = false)
+    );
+  }
+
+  public setStatusText(text: string): void {
+    this.statusText = text;
   }
 }

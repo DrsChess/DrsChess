@@ -4,13 +4,13 @@
       <drs-tile class="tile-div" *ngFor="let col of row" [tile]="col"></drs-tile>
     </div>
 
-    <drs-knight *ngIf="this.knightW?.ready" [knight]="this.knightW" class="drs-knight" [ngStyle]="{'top': this.knightW.position.topPx, 'left': this.knightW.position.leftPx }"></drs-knight>
-    <drs-knight *ngIf="this.knightN?.ready"  [knight]="this.knightN" class="drs-knight" [ngStyle]="{'top': this.knightN.position.topPx, 'left': this.knightN.position.leftPx }"></drs-knight>
-    <drs-knight *ngIf="this.knightE?.ready"  [knight]="this.knightE" class="drs-knight" [ngStyle]="{'top': this.knightE.position.topPx, 'left': this.knightE.position.leftPx }"></drs-knight>
-    <drs-knight *ngIf="this.knightS?.ready"  [knight]="this.knightS" class="drs-knight" [ngStyle]="{'top': this.knightS.position.topPx, 'left': this.knightS.position.leftPx }"></drs-knight>
+    <drs-knight *ngIf="this.knightW?.ready" [knight]="this.knightW" class="drs-knight" [ngClass]="this.knightW.ready ? 'animate' : ''" [ngStyle]="{'top': this.knightW.position.topPx, 'left': this.knightW.position.leftPx }"></drs-knight>
+    <drs-knight *ngIf="this.knightN?.ready" [knight]="this.knightN" class="drs-knight" [ngClass]="this.knightN.ready ? 'animate' : ''" [ngStyle]="{'top': this.knightN.position.topPx, 'left': this.knightN.position.leftPx }"></drs-knight>
+    <drs-knight *ngIf="this.knightE?.ready" [knight]="this.knightE" class="drs-knight" [ngClass]="this.knightE.ready ? 'animate' : ''" [ngStyle]="{'top': this.knightE.position.topPx, 'left': this.knightE.position.leftPx }"></drs-knight>
+    <drs-knight *ngIf="this.knightS?.ready" [knight]="this.knightS" class="drs-knight" [ngClass]="this.knightS.ready ? 'animate' : ''" [ngStyle]="{'top': this.knightS.position.topPx, 'left': this.knightS.position.leftPx }"></drs-knight>
   </div>
 </div>
-<div>
-  <button (click)="startGame()">Start</button>
-  <div *ngIf="this.secondsToStart != null">Starting in: {{ this.secondsToStart }} seconds</div>
+<div class="drs-sidepane">
+  <button *ngIf="!this.running" (click)="startGame()">Start</button>
+  <div>{{ this.statusText }}</div>
 </div>
