@@ -8,9 +8,6 @@ import { Tile } from '../domain/tile';
   templateUrl: './tile.component.html',
 })
 export class TileComponent {
-  public static readonly Size = 152;
-  public static readonly SizePx = '152px';
-
   @Input() tile: Tile;
 
   constructor(private appService: AppService) {}

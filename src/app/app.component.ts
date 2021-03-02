@@ -23,6 +23,7 @@ export class AppComponent extends Unsubscriber implements OnInit {
 
   statusText: string;
   running: boolean;
+  playerMoves: number[];
 
   constructor(private appService: AppService) {
     super();
@@ -56,5 +57,9 @@ export class AppComponent extends Unsubscriber implements OnInit {
 
   public setStatusText(text: string): void {
     this.statusText = text;
+  }
+
+  public setPlayerMoves(playerMoves: number[]): void {
+    this.playerMoves = playerMoves;
   }
 }

@@ -15,3 +15,89 @@
   top: 50px;
   background: blue;
 }
+
+.tile-pointer {
+  cursor: pointer;
+}
+
+.tile-highlight {
+  height: 10px;
+  position: absolute;
+  left: 3px;
+  top: 3px;
+  color: darkgreen;
+}
+
+.tile-row-explosion {
+  background-color: red;
+  height: 80px;
+  width: 152px;
+  position: absolute;
+  left: -1px;
+  top: 35px;
+
+  opacity: 0;
+}
+
+.tile-row-explosion.visible {
+  opacity: 1;
+  animation-name: fadeIn;
+  -webkit-animation-name: fadeIn;
+  animation-duration: 1.5s;
+  -webkit-animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
+  -webkit-animation-timing-function: ease-in-out;
+  visibility: visible !important;
+}
+
+.tile-col-explosion {
+  background-color: red;
+  height: 152px;
+  width: 80px;
+  position: absolute;
+  top: -1px;
+  left: 35px;
+
+  opacity: 0;
+}
+
+.tile-col-explosion.visible {
+  opacity: 1;
+  animation-name: fadeIn;
+  -webkit-animation-name: fadeIn;
+  animation-duration: 1.5s;
+  -webkit-animation-duration: 1.5s;
+  animation-timing-function: ease-in-out;
+  -webkit-animation-timing-function: ease-in-out;
+  visibility: visible !important;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}

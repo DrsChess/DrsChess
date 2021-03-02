@@ -13,4 +13,5 @@
 <div class="drs-sidepane">
   <button *ngIf="!this.running" (click)="startGame()">Start</button>
   <div>{{ this.statusText }}</div>
+  <div *ngIf="this.playerMoves && this.playerMoves.length === 2">Your Moves: First: {{ this.playerMoves[0] }} / Second: {{ this.playerMoves[1]}}</div>
 </div>

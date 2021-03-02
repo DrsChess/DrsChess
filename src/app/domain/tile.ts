@@ -1,6 +1,12 @@
 export class Tile {
+  public static readonly Size = 152;
+  public static readonly SizePx = '152px';
+
   public color: string;
   public hasPlayer = false;
+  public highLight = false;
+  public explodingRow = false;
+  public explodingCol = false;
 
   constructor(private row: number, private col: number) {
     this.updateValues();

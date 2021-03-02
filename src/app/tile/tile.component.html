@@ -1,3 +1,21 @@
-<div *ngIf="this.tile" [ngStyle]="{ 'background-color': this.tile.color, 'border-color': this.tile.color }" class="tile-div" (click)="this.onClick()">
+<div
+  *ngIf="this.tile"
+  [ngStyle]="{
+    'background-color': this.tile.color,
+    'border-color': this.tile.color
+  }"
+  [ngClass]="this.tile.highLight ? 'tile-pointer' : ''"
+  class="tile-div"
+  (click)="this.onClick()"
+>
   <div *ngIf="this.tile.hasPlayer" class="tile-player"></div>
+  <div *ngIf="this.tile.highLight" class="tile-highlight">Reachable</div>
+  <div
+    class="tile-row-explosion"
+    [ngClass]="this.tile.explodingRow ? 'visible' : ''"
+  ></div>
+  <div
+    class="tile-col-explosion"
+    [ngClass]="this.tile.explodingCol ? 'visible' : ''"
+  ></div>
 </div>
