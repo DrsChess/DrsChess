@@ -1,3 +1,5 @@
+import { interval, timer } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { TileComponent } from '../tile/tile.component';
 import { Direction } from './direction.enum';
 import { Position } from './position.model';
@@ -63,5 +65,11 @@ export class Knight {
         this.position.left -= this.steps * TileComponent.Size;
         break;
     }
+
+    interval(1500 / this.steps)
+      .pipe(take(this.steps))
+      .subscribe(() => {
+        this.steps -= 1;
+      });
   }
 }
