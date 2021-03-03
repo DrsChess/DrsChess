@@ -4,12 +4,14 @@
   background-color: red;
   border-radius: 50%;
   display: table-cell;
+  z-index: 9999;
 }
 
 .drs-table {
   display: inline-grid;
   height: 50px;
   width: 50px;
+  z-index: 9999;
 }
 
 .drs-row {
@@ -17,4 +19,5 @@
   display: table-row;
   text-align: center;
   margin: 0 auto;
+  z-index: 9999;
 }

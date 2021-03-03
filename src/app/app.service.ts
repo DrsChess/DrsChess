@@ -3,7 +3,6 @@ import {
   fromEvent,
   interval,
   Observable,
-  of,
   ReplaySubject,
   Subject,
   timer,
@@ -25,6 +24,7 @@ export class AppService extends Unsubscriber {
   private tiles$: ReplaySubject<Tile[][]>;
   private knights$: ReplaySubject<Knight[]>;
   private player$: ReplaySubject<Player>;
+  private playerMoves$: ReplaySubject<number[]>;
 
   private knightW: Knight;
   private knightN: Knight;
@@ -32,7 +32,7 @@ export class AppService extends Unsubscriber {
   private knightS: Knight;
 
   private playerMoveAllowed: boolean;
-  private playerMoves: number[];
+  private _playerMoves: number[];
 
   private readonly _player: Player;
   private playerPosition: Coords;
@@ -50,11 +50,16 @@ export class AppService extends Unsubscriber {
     return this.player$.asObservable();
   }
 
+  get playerMoves(): Observable<number[]> {
+    return this.playerMoves$.asObservable();
+  }
+
   constructor() {
     super();
     this.tiles$ = new ReplaySubject<Tile[][]>(1);
     this.knights$ = new ReplaySubject<Knight[]>(1);
     this.player$ = new ReplaySubject<Player>(1);
+    this.playerMoves$ = new ReplaySubject<number[]>(1);
 
     this._player = new Player();
     this._player.setPlayerPosition(4, 2);
@@ -81,9 +86,6 @@ export class AppService extends Unsubscriber {
   }
 
   /* TODO: 
-    player image
-    debuff images
-    correct timing
     put s when doom
   */
 
@@ -101,29 +103,23 @@ export class AppService extends Unsubscriber {
     this.resetBoard();
     this.setupGame();
 
-    component.setPlayerMoves(this.playerMoves);
-
     const kill$ = new Subject<void>();
 
-    const start = 5;
+    const start = 23;
+    this.playerMoveAllowed = true;
 
     return interval(1000).pipe(
-      take(30),
+      take(48),
       takeUntil(kill$),
       tap((v) => {
-        // Time before the mechanic resolves (22 seconds?)
+        // Time before the first debuff ends (23 seconds)
         if (v < start) {
-          this.playerMoveAllowed = true;
-
           component.setStatusText(
-            `Find your starting position! Seconds left: ${5 - v}`
+            `Find your starting position! Seconds left: ${start - v}`
           );
-          return;
         }
         // The first knights move
-        if (v === start) {
-          this.playerMoveAllowed = false;
-
+        if (v === start - 2) {
           if (this.playerPosition.row === 4 && this.playerPosition.col === 2) {
             // player did not click, shower slimes on them
             this.stopGame(kill$);
@@ -138,34 +134,31 @@ export class AppService extends Unsubscriber {
           this.knightN.move();
           return;
         }
-        // The rows explode
-        if (v === start + 2) {
-          this.setRowExplosions();
 
-          if (this.playerPosition.row === this.knightS.target) {
-            component.setStatusText(
-              `Explosion: The row you are on was hit by the knight walking south!! DOOOM`
-            );
-            this.stopGame(kill$);
-            return;
-          }
-          if (this.playerPosition.row === this.knightN.target) {
-            component.setStatusText(
-              `Explosion: The row you are on was hit by the knight walking north!! DOOOM`
-            );
-            this.stopGame(kill$);
-            return;
-          }
+        // Time to move the first steps (10 seconds)
+        if (v >= start && v < start + 10) {
+          // The rows explode
+          if (v === start) {
+            this.setRowExplosions();
 
-          component.setStatusText(`Explosion! You are safe!`);
-          return;
-        }
-        // Time to move the first steps (5 seconds?)
-        if (v >= start + 3 && v < start + 8) {
-          this.playerMoveAllowed = true;
+            if (this.playerPosition.row === this.knightS.target) {
+              component.setStatusText(
+                `Explosion: The row you are on was hit by the knight walking south!! DOOOM`
+              );
+              this.stopGame(kill$);
+              return;
+            }
+            if (this.playerPosition.row === this.knightN.target) {
+              component.setStatusText(
+                `Explosion: The row you are on was hit by the knight walking north!! DOOOM`
+              );
+              this.stopGame(kill$);
+              return;
+            }
 
-          if (v === start + 3) {
-            this._player.steps = this.playerMoves[0];
+            component.setStatusText(`Explosion! You are safe!`);
+
+            this._player.steps = this._playerMoves[0];
             this._player.setStartingPosition(
               this.playerPosition.row,
               this.playerPosition.col
@@ -174,13 +167,13 @@ export class AppService extends Unsubscriber {
 
           component.setStatusText(
             `Move your first amount of steps (${
-              this.playerMoves[0]
-            })! Seconds left: ${5 + (start + 3 - v)}`
+              this._playerMoves[0]
+            })! Seconds left: ${10 + (start - v)}`
           );
           return;
         }
         // The second knights move
-        if (v === start + 8) {
+        if (v === start + 10) {
           this.playerMoveAllowed = false;
 
           if (this._player.remainingSteps !== 0) {
@@ -200,19 +193,19 @@ export class AppService extends Unsubscriber {
           return;
         }
         // The columns explode
-        if (v === start + 10) {
+        if (v === start + 12) {
           this.setColExplosions();
 
           if (this.playerPosition.col === this.knightE.target) {
             component.setStatusText(
-              `Explosion: The row you are on was hit by the knight walking east!! DOOOM`
+              `Explosion: The column you are on was hit by the knight walking east!! DOOOM`
             );
             this.stopGame(kill$);
             return;
           }
           if (this.playerPosition.col === this.knightW.target) {
             component.setStatusText(
-              `Explosion: The row you are on was hit by the knight walking west!! DOOOM`
+              `Explosion: The column you are on was hit by the knight walking west!! DOOOM`
             );
             this.stopGame(kill$);
             return;
@@ -221,12 +214,12 @@ export class AppService extends Unsubscriber {
           component.setStatusText(`Explosion! You are safe!`);
           return;
         }
-        // Time to move the second steps (? seconds?)
-        if (v >= start + 11 && v < start + 16) {
+        // Time to move the second steps (9 seconds)
+        if (v >= start + 16 && v < start + 24) {
           this.playerMoveAllowed = true;
 
-          if (v === start + 11) {
-            this._player.steps = this.playerMoves[1];
+          if (v === start + 16) {
+            this._player.steps = this._playerMoves[1];
             this._player.setStartingPosition(
               this.playerPosition.row,
               this.playerPosition.col
@@ -235,12 +228,12 @@ export class AppService extends Unsubscriber {
 
           component.setStatusText(
             `Move your second amount of steps (${
-              this.playerMoves[1]
-            })! Seconds left: ${5 + (start + 11 - v)}`
+              this._playerMoves[1]
+            })! Seconds left: ${8 + (start + 16 - v)}`
           );
           return;
         }
-        if (v === start + 16) {
+        if (v === start + 24) {
           this.playerMoveAllowed = false;
 
           if (this._player.remainingSteps !== 0) {
@@ -258,13 +251,13 @@ export class AppService extends Unsubscriber {
             component.setStatusText(
               `You did not reach the target tile. DOOOOOM`
             );
+            this.stopGame(kill$);
           } else {
             component.setStatusText(
               `You reached the goal in time without getting hit. Good job!`
             );
+            component.showGreenSlime = true;
           }
-
-          this.stopGame(kill$);
         }
       })
     );
@@ -283,7 +276,10 @@ export class AppService extends Unsubscriber {
     this.knightS.init(position, steps[0]);
     this.knightN.init((position + 1) % 2, steps[1]);
 
-    this.playerMoves = this.generate2DifferentRandomNumbers(2, 4);
+    this._playerMoves = this.generate2DifferentRandomNumbers(2, 4);
+    this.playerMoves$.next(this._playerMoves);
+
+    this._player.setPlayerPosition(4, 2);
   }
 
   private generate2DifferentRandomNumbers(from: number, to: number): number[] {
@@ -304,6 +300,7 @@ export class AppService extends Unsubscriber {
     this.knightN = new Knight(Direction.N);
     this.knightE = new Knight(Direction.E);
     this.knightS = new Knight(Direction.S);
+    this._player.failed = false;
 
     this.knights$.next([
       this.knightW,
@@ -319,6 +316,10 @@ export class AppService extends Unsubscriber {
         tiles[row].push(new Tile(row, col));
       }
     }
+
+    this._player.setStartingPosition(-1, -1);
+
+    this._player.steps = 0;
 
     this._tiles = tiles;
     this.tiles$.next(tiles);
@@ -340,8 +341,7 @@ export class AppService extends Unsubscriber {
         this.knightS.ready = false;
         this.knightW.ready = false;
 
-        this._player.setPlayerPosition(-1, -1);
-        this._player.setStartingPosition(-1, -1);
+        this._player.failed = true;
       });
   }
 

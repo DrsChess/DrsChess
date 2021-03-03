@@ -9,9 +9,14 @@
 >
   <div *ngIf="this.hasPlayer" class="tile-player">
     <drs-dots
+      class="drs-dots"
       *ngIf="this.player.remainingSteps > 0"
       [dotCount]="this.player.remainingSteps"
     ></drs-dots>
+    <img
+      class="drs-wol-image"
+      [src]="this.player.failed ? 'assets/RedSlime.png' : 'assets/WoL.PNG'"
+    />
   </div>
   <div
     class="tile-row-explosion"

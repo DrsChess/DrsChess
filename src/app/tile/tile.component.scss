@@ -13,11 +13,22 @@
   position: absolute;
   left: 50px;
   top: 50px;
-  background: blue;
 }
 
 .tile-highlight {
   background-color: yellow;
+}
+
+.drs-wol-image {
+  position: absolute;
+  height: 120px;
+  top: -30px;
+  left: -27px;
+  z-index: 950;
+}
+
+.drs-dots {
+  z-index: 999;
 }
 
 .tile-row-explosion {

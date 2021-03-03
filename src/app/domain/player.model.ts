@@ -4,7 +4,7 @@ import { Coords } from './coords.model';
 
 export class Player {
   public steps: number;
-
+  public failed: boolean;
   public remainingSteps: number;
 
   private position$: ReplaySubject<Coords> = new ReplaySubject<Coords>(1);

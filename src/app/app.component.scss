@@ -1,3 +1,7 @@
+h3 {
+  text-align: center;
+}
+
 .tile-div {
   height: 152px;
   width: 152px;
@@ -28,6 +32,41 @@
 
 .drs-sidepane {
   position: absolute;
+  background-color: yellowgreen;
+  border: 1px solid black;
   top: 20px;
   left: 1000px;
+  display: table;
+
+  width: 320px;
+  height: 600px;
+}
+
+.drs-padding {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.drs-sidepane-row {
+  display: table-row;
+}
+
+.drs-credit {
+  font-size: 9pt;
+  position: absolute;
+  top: 880px;
+  left: 120px;
+}
+
+.drs-debuff-timer {
+  position: absolute;
+  font-size: small;
+  text-align: center;
+  min-width: 20px;
+}
+
+.drs-green-slime {
+  position: absolute;
+  top: 80px;
+  left: 50px;
 }
