@@ -1,27 +1,42 @@
 import { Injectable } from '@angular/core';
-import { interval, Observable, ReplaySubject, Subject, timer } from 'rxjs';
-import { take, takeUntil, tap } from 'rxjs/operators';
+import {
+  fromEvent,
+  interval,
+  Observable,
+  of,
+  ReplaySubject,
+  Subject,
+  timer,
+} from 'rxjs';
+import { filter, take, takeUntil, tap } from 'rxjs/operators';
 import { AppComponent } from './app.component';
+import { Unsubscriber } from './core/unsubscriber';
+import { Coords } from './domain/coords.model';
 import { Direction } from './domain/direction.enum';
 import { Knight } from './domain/knight.model';
+import { Player } from './domain/player.model';
 import { Tile } from './domain/tile';
 
 @Injectable({
   providedIn: 'root',
 })
-export class AppService {
+export class AppService extends Unsubscriber {
   private _tiles: Tile[][];
   private tiles$: ReplaySubject<Tile[][]>;
   private knights$: ReplaySubject<Knight[]>;
+  private player$: ReplaySubject<Player>;
 
   private knightW: Knight;
   private knightN: Knight;
   private knightE: Knight;
   private knightS: Knight;
 
-  private playerClickAllowed: boolean;
+  private playerMoveAllowed: boolean;
   private playerMoves: number[];
-  private onlyAllowClickOnHighlighted: boolean;
+
+  private readonly _player: Player;
+  private playerPosition: Coords;
+  private playerStartingPosition: Coords;
 
   get tiles(): Observable<Tile[][]> {
     return this.tiles$.asObservable();
@@ -31,32 +46,57 @@ export class AppService {
     return this.knights$.asObservable();
   }
 
-  constructor() {
-    this.tiles$ = new ReplaySubject<Tile[][]>(1);
+  get player(): Observable<Player> {
+    return this.player$.asObservable();
+  }
 
+  constructor() {
+    super();
+    this.tiles$ = new ReplaySubject<Tile[][]>(1);
     this.knights$ = new ReplaySubject<Knight[]>(1);
+    this.player$ = new ReplaySubject<Player>(1);
+
+    this._player = new Player();
+    this._player.setPlayerPosition(4, 2);
+    this._player.setStartingPosition(-1, -1);
+
+    this._player.playerPosition
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe((pos) => (this.playerPosition = pos));
+    this._player.startingPosition
+      .pipe(takeUntil(this.onDestroy$))
+      .subscribe((pos) => (this.playerStartingPosition = pos));
+
+    fromEvent(document, 'keydown')
+      .pipe(filter((event: any) => !event.repeat))
+      .subscribe((event) => {
+        if (this.playerMoveAllowed) {
+          this._player.move(event.code);
+        }
+      });
+
+    this.player$.next(this._player);
 
     this.resetBoard();
   }
 
+  /* TODO: 
+    player image
+    debuff images
+    correct timing
+    put s when doom
+  */
+
   public onClick(tile: Tile) {
-    if (
-      !this.playerClickAllowed ||
-      (this.playerClickAllowed &&
-        this.onlyAllowClickOnHighlighted &&
-        !tile.highLight)
-    ) {
+    if (!this.playerMoveAllowed) {
       return;
     }
-    this._tiles.forEach((rows) => {
-      rows.forEach((t) => {
-        t.hasPlayer = t === tile;
-      });
-    });
+
+    this._player.setPlayerPosition(tile.row, tile.col);
   }
 
   public startGame(component: AppComponent): Observable<number> {
-    this.playerClickAllowed = false;
+    this.playerMoveAllowed = false;
 
     this.resetBoard();
     this.setupGame();
@@ -66,7 +106,6 @@ export class AppService {
     const kill$ = new Subject<void>();
 
     const start = 5;
-    let playerPosition: number[];
 
     return interval(1000).pipe(
       take(30),
@@ -74,7 +113,7 @@ export class AppService {
       tap((v) => {
         // Time before the mechanic resolves (22 seconds?)
         if (v < start) {
-          this.playerClickAllowed = true;
+          this.playerMoveAllowed = true;
 
           component.setStatusText(
             `Find your starting position! Seconds left: ${5 - v}`
@@ -83,10 +122,9 @@ export class AppService {
         }
         // The first knights move
         if (v === start) {
-          this.playerClickAllowed = false;
+          this.playerMoveAllowed = false;
 
-          playerPosition = this.getPlayerPosition();
-          if (playerPosition.length === 0) {
+          if (this.playerPosition.row === 4 && this.playerPosition.col === 2) {
             // player did not click, shower slimes on them
             this.stopGame(kill$);
             component.setStatusText(
@@ -104,14 +142,14 @@ export class AppService {
         if (v === start + 2) {
           this.setRowExplosions();
 
-          if (playerPosition[0] === this.knightS.target) {
+          if (this.playerPosition.row === this.knightS.target) {
             component.setStatusText(
               `Explosion: The row you are on was hit by the knight walking south!! DOOOM`
             );
             this.stopGame(kill$);
             return;
           }
-          if (playerPosition[0] === this.knightN.target) {
+          if (this.playerPosition.row === this.knightN.target) {
             component.setStatusText(
               `Explosion: The row you are on was hit by the knight walking north!! DOOOM`
             );
@@ -124,9 +162,15 @@ export class AppService {
         }
         // Time to move the first steps (5 seconds?)
         if (v >= start + 3 && v < start + 8) {
-          this.playerClickAllowed = true;
+          this.playerMoveAllowed = true;
 
-          this.highLightReachableSpots(playerPosition, this.playerMoves[0]);
+          if (v === start + 3) {
+            this._player.steps = this.playerMoves[0];
+            this._player.setStartingPosition(
+              this.playerPosition.row,
+              this.playerPosition.col
+            );
+          }
 
           component.setStatusText(
             `Move your first amount of steps (${
@@ -137,12 +181,18 @@ export class AppService {
         }
         // The second knights move
         if (v === start + 8) {
-          this.playerClickAllowed = false;
+          this.playerMoveAllowed = false;
 
-          this.removeHighLight();
-          this.onlyAllowClickOnHighlighted = false;
+          if (this._player.remainingSteps !== 0) {
+            component.setStatusText(
+              `You did not move the required amount of steps! DOOOOOOM!!!`
+            );
+            this.stopGame(kill$);
+            return;
+          }
 
-          playerPosition = this.getPlayerPosition();
+          this._player.steps = 0;
+          this._player.setStartingPosition(-1, -1);
 
           component.setStatusText(`Moving East and West`);
           this.knightE.move();
@@ -153,19 +203,17 @@ export class AppService {
         if (v === start + 10) {
           this.setColExplosions();
 
-          if (playerPosition[1] === this.knightE.target) {
+          if (this.playerPosition.col === this.knightE.target) {
             component.setStatusText(
               `Explosion: The row you are on was hit by the knight walking east!! DOOOM`
             );
             this.stopGame(kill$);
             return;
           }
-          if (playerPosition[1] === this.knightW.target) {
+          if (this.playerPosition.col === this.knightW.target) {
             component.setStatusText(
               `Explosion: The row you are on was hit by the knight walking west!! DOOOM`
             );
-            console.log(playerPosition);
-            console.log(this.knightW.target);
             this.stopGame(kill$);
             return;
           }
@@ -175,9 +223,15 @@ export class AppService {
         }
         // Time to move the second steps (? seconds?)
         if (v >= start + 11 && v < start + 16) {
-          this.playerClickAllowed = true;
+          this.playerMoveAllowed = true;
 
-          this.highLightReachableSpots(playerPosition, this.playerMoves[1]);
+          if (v === start + 11) {
+            this._player.steps = this.playerMoves[1];
+            this._player.setStartingPosition(
+              this.playerPosition.row,
+              this.playerPosition.col
+            );
+          }
 
           component.setStatusText(
             `Move your second amount of steps (${
@@ -187,13 +241,20 @@ export class AppService {
           return;
         }
         if (v === start + 16) {
-          this.playerClickAllowed = false;
+          this.playerMoveAllowed = false;
 
-          this.removeHighLight();
-          this.onlyAllowClickOnHighlighted = false;
+          if (this._player.remainingSteps !== 0) {
+            component.setStatusText(
+              `You did not move the required amount of steps! DOOOOOOM!!!`
+            );
+            this.stopGame(kill$);
+            return;
+          }
 
-          playerPosition = this.getPlayerPosition();
-          if (playerPosition[0] !== 2 || playerPosition[1] !== 4) {
+          this._player.steps = 0;
+          this._player.setStartingPosition(-1, -1);
+
+          if (this.playerPosition.col !== 2 || this.playerPosition.row !== 4) {
             component.setStatusText(
               `You did not reach the target tile. DOOOOOM`
             );
@@ -267,69 +328,21 @@ export class AppService {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  private getPlayerPosition(): number[] {
-    for (let row = 0; row < this._tiles.length; row++) {
-      for (let col = 0; col < this._tiles[row].length; col++) {
-        if (this._tiles[row][col].hasPlayer) {
-          return [row, col];
-        }
-      }
-    }
-
-    return [];
-  }
-
-  private findReachableTiles(
-    playerPosition: number[],
-    steps: number
-  ): number[][] {
-    const result: number[][] = [];
-
-    for (let row = 0; row < this._tiles.length; row++) {
-      for (let col = 0; col < this._tiles[row].length; col++) {
-        if (
-          Math.abs(row - playerPosition[0]) +
-            Math.abs(col - playerPosition[1]) ===
-          steps
-        ) {
-          result.push([row, col]);
-        }
-      }
-    }
-
-    return result;
-  }
-
-  private highLightTiles(tileCoords: number[][]): void {
-    tileCoords.forEach(
-      (coords) => (this._tiles[coords[0]][coords[1]].highLight = true)
-    );
-  }
-
-  private removeHighLight(): void {
-    this._tiles.forEach((row) =>
-      row.forEach((tile) => (tile.highLight = false))
-    );
-  }
-
-  private highLightReachableSpots(
-    playerPosition: number[],
-    steps: number
-  ): void {
-    const reachableSpots = this.findReachableTiles(playerPosition, steps);
-
-    this.highLightTiles(reachableSpots);
-    this.onlyAllowClickOnHighlighted = true;
-  }
-
   private stopGame(kill$: Subject<void>): void {
     kill$.next();
     kill$.complete();
 
-    this.knightN.ready = false;
-    this.knightE.ready = false;
-    this.knightS.ready = false;
-    this.knightW.ready = false;
+    timer(1000)
+      .pipe(take(1))
+      .subscribe(() => {
+        this.knightN.ready = false;
+        this.knightE.ready = false;
+        this.knightS.ready = false;
+        this.knightW.ready = false;
+
+        this._player.setPlayerPosition(-1, -1);
+        this._player.setStartingPosition(-1, -1);
+      });
   }
 
   private setRowExplosions(): void {

@@ -16,16 +16,8 @@
   background: blue;
 }
 
-.tile-pointer {
-  cursor: pointer;
-}
-
 .tile-highlight {
-  height: 10px;
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  color: darkgreen;
+  background-color: yellow;
 }
 
 .tile-row-explosion {

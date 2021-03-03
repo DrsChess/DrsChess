@@ -1,0 +1,20 @@
+.drs-dot {
+  height: 25px;
+  width: 25px;
+  background-color: red;
+  border-radius: 50%;
+  display: table-cell;
+}
+
+.drs-table {
+  display: inline-grid;
+  height: 50px;
+  width: 50px;
+}
+
+.drs-row {
+  height: 25px;
+  display: table-row;
+  text-align: center;
+  margin: 0 auto;
+}

@@ -3,16 +3,10 @@ export class Tile {
   public static readonly SizePx = '152px';
 
   public color: string;
-  public hasPlayer = false;
-  public highLight = false;
   public explodingRow = false;
   public explodingCol = false;
 
-  constructor(private row: number, private col: number) {
-    this.updateValues();
-  }
-
-  public updateValues(): void {
+  constructor(public readonly row: number, public readonly col: number) {
     const evenRow = this.row % 2 === 0;
     const evenCol = this.col % 2 === 0;
 
