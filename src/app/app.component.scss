@@ -3,10 +3,10 @@ h3 {
 }
 
 .tile-div {
-  height: 152px;
-  width: 152px;
-  max-height: 152px;
-  max-width: 152px;
+  height: 142px;
+  width: 142px;
+  max-height: 142px;
+  max-width: 142px;
   display: table-cell;
 }
 
@@ -15,8 +15,8 @@ h3 {
   border: 1px solid darkgray;
 
   position: relative;
-  margin-top: 90px;
-  margin-left: 90px;
+  margin-top: 100px;
+  margin-left: 100px;
 }
 
 .drs-knight {
@@ -39,7 +39,7 @@ h3 {
   display: table;
 
   width: 320px;
-  height: 600px;
+  height: 800px;
 }
 
 .drs-padding {
@@ -52,10 +52,9 @@ h3 {
 }
 
 .drs-credit {
-  font-size: 9pt;
-  position: absolute;
-  top: 880px;
-  left: 120px;
+  font-size: 10pt;
+  text-align: right;
+  padding-left: 10px;
 }
 
 .drs-debuff-timer {

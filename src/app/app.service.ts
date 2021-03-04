@@ -3,6 +3,7 @@ import {
   fromEvent,
   interval,
   Observable,
+  of,
   ReplaySubject,
   Subject,
   timer,
@@ -84,10 +85,6 @@ export class AppService extends Unsubscriber {
 
     this.resetBoard();
   }
-
-  /* TODO: 
-    put s when doom
-  */
 
   public onClick(tile: Tile) {
     if (!this.playerMoveAllowed) {
@@ -332,6 +329,8 @@ export class AppService extends Unsubscriber {
   private stopGame(kill$: Subject<void>): void {
     kill$.next();
     kill$.complete();
+
+    this.playerMoveAllowed = false;
 
     timer(1000)
       .pipe(take(1))

@@ -51,11 +51,11 @@
   </div>
 </div>
 <div class="drs-sidepane">
-  <div class="drs-sidepane-row" style="text-align: center">
+  <div class="drs-sidepane-row" style="text-align: center; height: 85px">
     <h3>START GAME</h3>
     <button *ngIf="!this.running" (click)="startGame()">Start Game</button>
   </div>
-  <div class="drs-sidepane-row">
+  <div class="drs-sidepane-row" style="height: 100px">
     <h3>STATUS</h3>
     <div class="drs-padding">{{ this.statusText }}</div>
     <img
@@ -65,7 +65,7 @@
     />
   </div>
 
-  <div class="drs-sidepane-row">
+  <div class="drs-sidepane-row" style="height: 90px">
     <h3>YOUR MOVES / DEBUFFS</h3>
     <div
       *ngIf="this.imageSrc1 && this.imageSrc2"

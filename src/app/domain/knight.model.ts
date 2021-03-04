@@ -9,29 +9,29 @@ export class Knight {
     [
       Direction.W,
       [
-        new Position(0 * Tile.Size - 100, 3 * Tile.Size + 50),
-        new Position(5 * Tile.Size + 2, 3 * Tile.Size + 50),
+        new Position(0 * Tile.Size - 100, 3 * Tile.Size + 43),
+        new Position(5 * Tile.Size + 2, 3 * Tile.Size + 43),
       ],
     ],
     [
       Direction.N,
       [
-        new Position(3 * Tile.Size + 32, 0 * Tile.Size - 63),
-        new Position(3 * Tile.Size + 32, 5 * Tile.Size + 3),
+        new Position(3 * Tile.Size + 21, 0 * Tile.Size - 63),
+        new Position(3 * Tile.Size + 21, 5 * Tile.Size + 3),
       ],
     ],
     [
       Direction.E,
       [
-        new Position(0 * Tile.Size - 100, Tile.Size + 50),
-        new Position(5 * Tile.Size + 2, Tile.Size + 50),
+        new Position(0 * Tile.Size - 100, Tile.Size + 43),
+        new Position(5 * Tile.Size + 2, Tile.Size + 43),
       ],
     ],
     [
       Direction.S,
       [
-        new Position(Tile.Size + 32, 0 * Tile.Size - 63),
-        new Position(Tile.Size + 32, 5 * Tile.Size + 3),
+        new Position(Tile.Size + 21, 0 * Tile.Size - 63),
+        new Position(Tile.Size + 21, 5 * Tile.Size + 3),
       ],
     ],
   ]);

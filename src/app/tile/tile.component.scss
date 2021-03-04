@@ -1,8 +1,8 @@
 .tile-div {
-  height: 150px;
-  width: 150px;
-  max-height: 150px;
-  max-width: 150px;
+  height: 140px;
+  width: 140px;
+  max-height: 140px;
+  max-width: 140px;
   border: 1px solid;
   position: relative;
 }
@@ -22,8 +22,8 @@
 .drs-wol-image {
   position: absolute;
   height: 120px;
-  top: -30px;
-  left: -27px;
+  top: -40px;
+  left: -32px;
   z-index: 950;
 }
 
@@ -34,7 +34,7 @@
 .tile-row-explosion {
   background-color: red;
   height: 80px;
-  width: 152px;
+  width: 142px;
   position: absolute;
   left: -1px;
   top: 35px;
@@ -55,7 +55,7 @@
 
 .tile-col-explosion {
   background-color: red;
-  height: 152px;
+  height: 142px;
   width: 80px;
   position: absolute;
   top: -1px;

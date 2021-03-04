@@ -1,6 +1,6 @@
 export class Tile {
-  public static readonly Size = 152;
-  public static readonly SizePx = '152px';
+  public static readonly Size = 142;
+  public static readonly SizePx = '142px';
 
   public color: string;
   public explodingRow = false;
