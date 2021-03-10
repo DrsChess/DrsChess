@@ -20,10 +20,10 @@
   </div>
   <div
     class="tile-row-explosion"
-    [ngClass]="this.tile.explodingRow ? 'visible' : ''"
+    [ngClass]="this.tile.explodingRow ? this.animationClass + ' visible' : ''"
   ></div>
   <div
     class="tile-col-explosion"
-    [ngClass]="this.tile.explodingCol ? 'visible' : ''"
+    [ngClass]="this.tile.explodingCol ? this.animationClass + ' visible' : ''"
   ></div>
 </div>

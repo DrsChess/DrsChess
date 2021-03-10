@@ -40,6 +40,8 @@ export class Knight {
   public displayedSteps: number;
   public ready: boolean;
   public position: Position;
+  public glow: boolean;
+  public speedMultiplier = 1;
 
   get target(): number {
     switch (this.facing) {
@@ -81,7 +83,7 @@ export class Knight {
         break;
     }
 
-    interval(1500 / this.steps)
+    interval(1500 / this.steps / this.speedMultiplier)
       .pipe(take(this.steps))
       .subscribe(
         () => {
@@ -89,7 +91,7 @@ export class Knight {
         },
         () => {},
         () =>
-          timer(1500)
+          timer(1500 / this.speedMultiplier)
             .pipe(take(1))
             .subscribe(() => (this.ready = false))
       );

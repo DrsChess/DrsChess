@@ -18,12 +18,27 @@ export class TileComponent extends Unsubscriber implements OnInit {
   color: string;
   hasPlayer: boolean;
 
+  animationClass = 'normal';
+
   constructor(private appService: AppService) {
     super();
   }
 
   ngOnInit() {
     this.color = this.tile.color;
+    switch (this.tile.speedMultiplier) {
+      case 1:
+        this.animationClass = 'normal';
+        break;
+      case 2:
+        this.animationClass = 'fast';
+        break;
+      case 3:
+        this.animationClass = 'fastest';
+        break;
+      default:
+        this.animationClass = 'slow';
+    }
     this.appService.player
       .pipe(
         tap((player) => (this.player = player)),

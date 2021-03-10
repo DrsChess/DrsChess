@@ -40,6 +40,11 @@ export class AppComponent extends Unsubscriber {
   showMove2: boolean;
   showGreenSlime: boolean;
 
+  skippable: boolean;
+
+  speedMultiplier = 1;
+  animateClass = 'drs-animate-normal';
+
   constructor(private appService: AppService) {
     super();
     this.appService.tiles
@@ -69,8 +74,10 @@ export class AppComponent extends Unsubscriber {
       return;
     }
     this.running = true;
-    this.appService.startGame(this).subscribe(
+    this.appService.startGame(this, this.speedMultiplier).subscribe(
       (v) => {
+        this.skippable = v < 23;
+
         this.debuff1Duration =
           v <= 23 ? Math.max(0, 23 - v) : Math.max(0, 33 - v);
         this.debuff2Duration =
@@ -90,8 +97,29 @@ export class AppComponent extends Unsubscriber {
     );
   }
 
+  public skipToFirstMechanic(): void {
+    this.appService.skipToFirstMechanic();
+  }
+
   public setStatusText(text: string): void {
     this.statusText = text;
+  }
+
+  public setSpeedMultiplier(value: any): void {
+    this.speedMultiplier = +value.target.value;
+    switch (this.speedMultiplier) {
+      case 1:
+        this.animateClass = 'drs-animate-normal';
+        break;
+      case 2:
+        this.animateClass = 'drs-animate-fast';
+        break;
+      case 3:
+        this.animateClass = 'drs-animate-fastest';
+        break;
+      default:
+        this.animateClass = 'drs-animate-slow';
+    }
   }
 
   private setPlayerMoves(playerMoves: number[]): void {

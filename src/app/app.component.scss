@@ -23,18 +23,39 @@ h3 {
   position: absolute;
 }
 
-.animate {
+.drs-animate-slow {
+  -webkit-transition: all 3s ease-out;
+  -o-transition: all 3s ease-out;
+  -moz-transition: all 3s ease-out;
+  transition: all 3s ease-out;
+}
+
+.drs-animate-normal {
   -webkit-transition: all 1.5s ease-out;
   -o-transition: all 1.5s ease-out;
   -moz-transition: all 1.5s ease-out;
   transition: all 1.5s ease-out;
 }
 
+.drs-animate-fast {
+  -webkit-transition: all 0.75s ease-out;
+  -o-transition: all 0.75s ease-out;
+  -moz-transition: all 0.75s ease-out;
+  transition: all 0.75s ease-out;
+}
+
+.drs-animate-fastest {
+  -webkit-transition: all 0.5s ease-out;
+  -o-transition: all 0.5s ease-out;
+  -moz-transition: all 0.5s ease-out;
+  transition: all 0.5s ease-out;
+}
+
 .drs-sidepane {
   position: absolute;
   background-color: yellowgreen;
   border: 1px solid black;
-  top: 20px;
+  top: 15px;
   left: 1000px;
   display: table;
 

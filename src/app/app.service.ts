@@ -8,7 +8,7 @@ import {
   Subject,
   timer,
 } from 'rxjs';
-import { filter, take, takeUntil, tap } from 'rxjs/operators';
+import { filter, map, take, takeUntil, tap } from 'rxjs/operators';
 import { AppComponent } from './app.component';
 import { Unsubscriber } from './core/unsubscriber';
 import { Coords } from './domain/coords.model';
@@ -37,7 +37,10 @@ export class AppService extends Unsubscriber {
 
   private readonly _player: Player;
   private playerPosition: Coords;
-  private playerStartingPosition: Coords;
+
+  private readonly start = 23;
+  private skipTicks: number;
+  private ticksSinceStart: number;
 
   get tiles(): Observable<Tile[][]> {
     return this.tiles$.asObservable();
@@ -69,9 +72,6 @@ export class AppService extends Unsubscriber {
     this._player.playerPosition
       .pipe(takeUntil(this.onDestroy$))
       .subscribe((pos) => (this.playerPosition = pos));
-    this._player.startingPosition
-      .pipe(takeUntil(this.onDestroy$))
-      .subscribe((pos) => (this.playerStartingPosition = pos));
 
     fromEvent(document, 'keydown')
       .pipe(filter((event: any) => !event.repeat))
@@ -83,7 +83,7 @@ export class AppService extends Unsubscriber {
 
     this.player$.next(this._player);
 
-    this.resetBoard();
+    this.resetBoard(1);
   }
 
   public onClick(tile: Tile) {
@@ -94,32 +94,43 @@ export class AppService extends Unsubscriber {
     this._player.setPlayerPosition(tile.row, tile.col);
   }
 
-  public startGame(component: AppComponent): Observable<number> {
+  public startGame(
+    component: AppComponent,
+    speedMultiplier: number
+  ): Observable<number> {
     this.playerMoveAllowed = false;
 
-    this.resetBoard();
+    this.resetBoard(speedMultiplier);
     this.setupGame();
 
     const kill$ = new Subject<void>();
 
-    const start = 23;
     this.playerMoveAllowed = true;
+    this.skipTicks = 0;
+    this.ticksSinceStart = 0;
 
-    return interval(1000).pipe(
-      take(48),
+    return interval(1000 / speedMultiplier).pipe(
       takeUntil(kill$),
+      map((v) => {
+        if (this.skipTicks === 0) {
+          this.ticksSinceStart = v;
+        } else {
+          v += this.skipTicks;
+        }
+        return v;
+      }),
       tap((v) => {
         // Time before the first debuff ends (23 seconds)
-        if (v < start) {
+        if (v < this.start) {
           component.setStatusText(
-            `Find your starting position! Seconds left: ${start - v}`
+            `Find your starting position! Seconds left: ${this.start - v}`
           );
         }
         // The first knights move
-        if (v === start - 2) {
+        if (v === this.start - 2) {
           if (this.playerPosition.row === 4 && this.playerPosition.col === 2) {
             // player did not click, shower slimes on them
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
             component.setStatusText(
               `You did not choose a starting location. DOOM.`
             );
@@ -133,23 +144,23 @@ export class AppService extends Unsubscriber {
         }
 
         // Time to move the first steps (10 seconds)
-        if (v >= start && v < start + 10) {
+        if (v >= this.start && v < this.start + 10) {
           // The rows explode
-          if (v === start) {
-            this.setRowExplosions();
+          if (v === this.start) {
+            this.setRowExplosions(speedMultiplier);
 
             if (this.playerPosition.row === this.knightS.target) {
               component.setStatusText(
                 `Explosion: The row you are on was hit by the knight walking south!! DOOOM`
               );
-              this.stopGame(kill$);
+              this.stopGame(kill$, speedMultiplier);
               return;
             }
             if (this.playerPosition.row === this.knightN.target) {
               component.setStatusText(
                 `Explosion: The row you are on was hit by the knight walking north!! DOOOM`
               );
-              this.stopGame(kill$);
+              this.stopGame(kill$, speedMultiplier);
               return;
             }
 
@@ -165,19 +176,19 @@ export class AppService extends Unsubscriber {
           component.setStatusText(
             `Move your first amount of steps (${
               this._playerMoves[0]
-            })! Seconds left: ${10 + (start - v)}`
+            })! Seconds left: ${10 + (this.start - v)}`
           );
           return;
         }
         // The second knights move
-        if (v === start + 10) {
+        if (v === this.start + 10) {
           this.playerMoveAllowed = false;
 
           if (this._player.remainingSteps !== 0) {
             component.setStatusText(
               `You did not move the required amount of steps! DOOOOOOM!!!`
             );
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
             return;
           }
 
@@ -190,21 +201,21 @@ export class AppService extends Unsubscriber {
           return;
         }
         // The columns explode
-        if (v === start + 12) {
-          this.setColExplosions();
+        if (v === this.start + 12) {
+          this.setColExplosions(speedMultiplier);
 
           if (this.playerPosition.col === this.knightE.target) {
             component.setStatusText(
               `Explosion: The column you are on was hit by the knight walking east!! DOOOM`
             );
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
             return;
           }
           if (this.playerPosition.col === this.knightW.target) {
             component.setStatusText(
               `Explosion: The column you are on was hit by the knight walking west!! DOOOM`
             );
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
             return;
           }
 
@@ -212,10 +223,10 @@ export class AppService extends Unsubscriber {
           return;
         }
         // Time to move the second steps (9 seconds)
-        if (v >= start + 16 && v < start + 24) {
+        if (v >= this.start + 16 && v < this.start + 25) {
           this.playerMoveAllowed = true;
 
-          if (v === start + 16) {
+          if (v === this.start + 16) {
             this._player.steps = this._playerMoves[1];
             this._player.setStartingPosition(
               this.playerPosition.row,
@@ -226,18 +237,18 @@ export class AppService extends Unsubscriber {
           component.setStatusText(
             `Move your second amount of steps (${
               this._playerMoves[1]
-            })! Seconds left: ${8 + (start + 16 - v)}`
+            })! Seconds left: ${8 + (this.start + 16 - v)}`
           );
           return;
         }
-        if (v === start + 24) {
+        if (v === this.start + 25) {
           this.playerMoveAllowed = false;
 
           if (this._player.remainingSteps !== 0) {
             component.setStatusText(
               `You did not move the required amount of steps! DOOOOOOM!!!`
             );
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
             return;
           }
 
@@ -248,16 +259,21 @@ export class AppService extends Unsubscriber {
             component.setStatusText(
               `You did not reach the target tile. DOOOOOM`
             );
-            this.stopGame(kill$);
+            this.stopGame(kill$, speedMultiplier);
           } else {
             component.setStatusText(
               `You reached the goal in time without getting hit. Good job!`
             );
             component.showGreenSlime = true;
+            this.stopGame(kill$, speedMultiplier, false);
           }
         }
       })
     );
+  }
+
+  public skipToFirstMechanic(): void {
+    this.skipTicks = Math.max(this.start - this.ticksSinceStart - 3, 0);
   }
 
   private setupGame(): void {
@@ -292,11 +308,17 @@ export class AppService extends Unsubscriber {
     return [n1, n2];
   }
 
-  private resetBoard(): void {
+  private resetBoard(speedMultiplier: number): void {
     this.knightW = new Knight(Direction.W);
     this.knightN = new Knight(Direction.N);
     this.knightE = new Knight(Direction.E);
     this.knightS = new Knight(Direction.S);
+
+    this.knightE.speedMultiplier = speedMultiplier;
+    this.knightS.speedMultiplier = speedMultiplier;
+    this.knightW.speedMultiplier = speedMultiplier;
+    this.knightN.speedMultiplier = speedMultiplier;
+
     this._player.failed = false;
 
     this.knights$.next([
@@ -310,7 +332,7 @@ export class AppService extends Unsubscriber {
     for (let row = 0; row < 5; row++) {
       tiles.push([]);
       for (let col = 0; col < 5; col++) {
-        tiles[row].push(new Tile(row, col));
+        tiles[row].push(new Tile(row, col, speedMultiplier));
       }
     }
 
@@ -326,13 +348,17 @@ export class AppService extends Unsubscriber {
     return Math.floor(Math.random() * (max - min + 1) + min);
   }
 
-  private stopGame(kill$: Subject<void>): void {
+  private stopGame(
+    kill$: Subject<void>,
+    speedMultiplier: number,
+    failed = true
+  ): void {
     kill$.next();
     kill$.complete();
 
     this.playerMoveAllowed = false;
 
-    timer(1000)
+    timer(1000 / speedMultiplier)
       .pipe(take(1))
       .subscribe(() => {
         this.knightN.ready = false;
@@ -340,11 +366,11 @@ export class AppService extends Unsubscriber {
         this.knightS.ready = false;
         this.knightW.ready = false;
 
-        this._player.failed = true;
+        this._player.failed = failed;
       });
   }
 
-  private setRowExplosions(): void {
+  private setRowExplosions(speedMultiplier: number): void {
     for (let row = 0; row < this._tiles.length; row++) {
       this._tiles[row].forEach((tile) => {
         tile.explodingRow =
@@ -352,7 +378,7 @@ export class AppService extends Unsubscriber {
       });
     }
 
-    timer(1000)
+    timer(1000 / speedMultiplier)
       .pipe(take(1))
       .subscribe(() => {
         this._tiles.forEach((row) =>
@@ -361,7 +387,7 @@ export class AppService extends Unsubscriber {
       });
   }
 
-  private setColExplosions(): void {
+  private setColExplosions(speedMultiplier: number): void {
     this._tiles.forEach((row) => {
       for (let col = 0; col < row.length; col++) {
         row[col].explodingCol =
@@ -369,7 +395,7 @@ export class AppService extends Unsubscriber {
       }
     });
 
-    timer(1000)
+    timer(1000 / speedMultiplier)
       .pipe(take(1))
       .subscribe(() => {
         this._tiles.forEach((row) =>

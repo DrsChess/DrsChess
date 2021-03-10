@@ -12,7 +12,7 @@
       *ngIf="this.knightW?.ready"
       [knight]="this.knightW"
       class="drs-knight"
-      [ngClass]="this.knightW.ready ? 'animate' : ''"
+      [ngClass]="this.animateClass"
       [ngStyle]="{
         top: this.knightW.position.topPx,
         left: this.knightW.position.leftPx
@@ -22,7 +22,7 @@
       *ngIf="this.knightN?.ready"
       [knight]="this.knightN"
       class="drs-knight"
-      [ngClass]="this.knightN.ready ? 'animate' : ''"
+      [ngClass]="this.animateClass"
       [ngStyle]="{
         top: this.knightN.position.topPx,
         left: this.knightN.position.leftPx
@@ -32,7 +32,7 @@
       *ngIf="this.knightE?.ready"
       [knight]="this.knightE"
       class="drs-knight"
-      [ngClass]="this.knightE.ready ? 'animate' : ''"
+      [ngClass]="this.animateClass"
       [ngStyle]="{
         top: this.knightE.position.topPx,
         left: this.knightE.position.leftPx
@@ -42,7 +42,7 @@
       *ngIf="this.knightS?.ready"
       [knight]="this.knightS"
       class="drs-knight"
-      [ngClass]="this.knightS.ready ? 'animate' : ''"
+      [ngClass]="this.animateClass"
       [ngStyle]="{
         top: this.knightS.position.topPx,
         left: this.knightS.position.leftPx
@@ -53,121 +53,157 @@
 <div class="drs-sidepane">
   <div class="drs-sidepane-row" style="text-align: center; height: 85px">
     <h3>START GAME</h3>
-    <button *ngIf="!this.running" (click)="startGame()">Start Game</button>
-  </div>
-  <div class="drs-sidepane-row" style="height: 100px">
-    <h3>STATUS</h3>
-    <div class="drs-padding">{{ this.statusText }}</div>
-    <img
-      *ngIf="this.showGreenSlime"
-      src="assets/GreenSlime1.png"
-      class="drs-green-slime"
-    />
-  </div>
-
-  <div class="drs-sidepane-row" style="height: 90px">
-    <h3>YOUR MOVES / DEBUFFS</h3>
-    <div
-      *ngIf="this.imageSrc1 && this.imageSrc2"
-      style="display: table; padding-left: 20px"
+    <div style="display: inline-table" *ngIf="!this.running">
+      <div style="display: table-row">
+        <button
+          style="display: table-cell; vertical-align: middle"
+          (click)="startGame()"
+        >
+          Start Game
+        </button>
+        <label
+          style="
+            display: table-cell;
+            width: 50px;
+            font-size: 10pt;
+            text-align: right;
+            vertical-align: middle;
+          "
+          for="speed"
+          >Speed:
+        </label>
+        <select
+          [value]="this.speedMultiplier"
+          (change)="this.setSpeedMultiplier($event)"
+          style="display: table-cell; width: 70px; vertical-align: middle"
+        >
+          <option value="0.5">50%</option>
+          <option value="1">100%</option>
+          <option value="2">200%</option>
+          <option value="3">300%</option>
+        </select>
+      </div>
+    </div>
+    <button
+      *ngIf="this.running && this.skippable"
+      (click)="skipToFirstMechanic()"
     >
-      <div class="drs-padding" style="display: table-row; position: relative">
-        <img
-          *ngIf="this.showDebuff1"
-          [src]="this.imageSrc1"
-          style="display: table-cell; height: 26px"
-        />
-        <img
-          *ngIf="this.showMove1"
-          [src]="this.moveSrc1"
-          style="display: table-cell; height: 26px"
-        />
-        <img
-          *ngIf="this.showDebuff2"
-          [src]="this.imageSrc2"
-          style="display: table-cell; height: 26px"
-        />
-        <img
-          *ngIf="this.showMove2"
-          [src]="this.moveSrc2"
-          style="display: table-cell; height: 26px"
-        />
-        <img
-          *ngIf="this.stunDuration >= 0"
-          [src]="this.stunSrc"
-          style="display: table-cell; height: 26px"
-        />
-        <div
-          *ngIf="this.showDebuff1 || this.showMove1"
-          class="drs-debuff-timer"
-          style="left: 0px"
-        >
-          {{ this.debuff1Duration }}
-        </div>
-        <div
-          *ngIf="this.showDebuff2 || this.showMove2"
-          class="drs-debuff-timer"
-          [ngStyle]="{
-            left: this.showDebuff1 || this.showMove1 ? '20px' : '0px'
-          }"
-        >
-          {{ this.debuff2Duration }}
-        </div>
-        <div
-          *ngIf="this.stunDuration >= 0"
-          class="drs-debuff-timer"
-          [ngStyle]="{
-            left: this.showDebuff1 || this.showMove1 ? '40px' : '20px'
-          }"
-        >
-          {{ this.stunDuration }}
+      Skip
+    </button>
+    <div class="drs-sidepane-row" style="height: 100px">
+      <h3>STATUS</h3>
+      <div class="drs-padding">{{ this.statusText }}</div>
+      <img
+        *ngIf="this.showGreenSlime"
+        src="assets/GreenSlime1.png"
+        class="drs-green-slime"
+      />
+    </div>
+
+    <div class="drs-sidepane-row" style="height: 90px">
+      <h3>YOUR MOVES / DEBUFFS</h3>
+      <div
+        *ngIf="this.imageSrc1 && this.imageSrc2"
+        style="display: table; padding-left: 20px"
+      >
+        <div class="drs-padding" style="display: table-row; position: relative">
+          <img
+            *ngIf="this.showDebuff1"
+            [src]="this.imageSrc1"
+            style="display: table-cell; height: 26px"
+          />
+          <img
+            *ngIf="this.showMove1"
+            [src]="this.moveSrc1"
+            style="display: table-cell; height: 26px"
+          />
+          <img
+            *ngIf="this.showDebuff2"
+            [src]="this.imageSrc2"
+            style="display: table-cell; height: 26px"
+          />
+          <img
+            *ngIf="this.showMove2"
+            [src]="this.moveSrc2"
+            style="display: table-cell; height: 26px"
+          />
+          <img
+            *ngIf="this.stunDuration >= 0"
+            [src]="this.stunSrc"
+            style="display: table-cell; height: 26px"
+          />
+          <div
+            *ngIf="this.showDebuff1 || this.showMove1"
+            class="drs-debuff-timer"
+            style="left: 0px"
+          >
+            {{ this.debuff1Duration }}
+          </div>
+          <div
+            *ngIf="this.showDebuff2 || this.showMove2"
+            class="drs-debuff-timer"
+            [ngStyle]="{
+              left: this.showDebuff1 || this.showMove1 ? '20px' : '0px'
+            }"
+          >
+            {{ this.debuff2Duration }}
+          </div>
+          <div
+            *ngIf="this.stunDuration >= 0"
+            class="drs-debuff-timer"
+            [ngStyle]="{
+              left: this.showDebuff1 || this.showMove1 ? '40px' : '20px'
+            }"
+          >
+            {{ this.stunDuration }}
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <div class="drs-sidepane-row">
-    <h3>STRATEGY</h3>
-    <ol>
-      <li>
-        Go to the goal (blue) and turn camera so that the goal is on the bottom
-        row
-      </li>
-      <li>
-        Find the knight walking west/left: if it moves 1 or 2 tiles, the left
-        column is safe. Otherwise, the second column from left is safe
-      </li>
-      <li>
-        Find the knight walking north/up: if it moves 1 or 2 tiles, the upper
-        row is safe. Otherwise, the second row from top is safe
-      </li>
-      <li>
-        Count your total moves, go into the safe column and then in the
-        direction of the safe row. If you have moves left, go right
-      </li>
-      <li>
-        If you cannot reach the safe row (5 steps special case): look where the
-        knights walking up and down go. Depending on where they go, either go
-        into: [r2, c1], [r3, c2] or [r4, c3]
-      </li>
-      <li>
-        To resolve the first edict, go into the safe column and then walk down
-        (retrace your steps)
-      </li>
-    </ol>
-  </div>
+    <div class="drs-sidepane-row">
+      <h3>STRATEGY</h3>
+      <ol>
+        <li>
+          Go to the goal (blue) and turn camera so that the goal is on the
+          bottom row
+        </li>
+        <li>
+          Find the knight walking west/left: if it moves 1 or 2 tiles, the left
+          column is safe. Otherwise, the second column from left is safe
+        </li>
+        <li>
+          Find the knight walking north/up: if it moves 1 or 2 tiles, the upper
+          row is safe. Otherwise, the second row from top is safe
+        </li>
+        <li>
+          Count your total moves, go into the safe column and then in the
+          direction of the safe row. If you have moves left, go right
+        </li>
+        <li>
+          If you cannot reach the safe row (5 steps special case): look where
+          the knights walking up and down go. Depending on where they go, either
+          go into: [r2, c1], [r3, c2] or [r4, c3]
+        </li>
+        <li>
+          To resolve the first edict, go into the safe column and then walk down
+          (retrace your steps)
+        </li>
+      </ol>
+    </div>
 
-  <div class="drs-sidepane-row">
-    <h3>CONTROLS</h3>
-    <ul>
-      <li>Start the game with the button on top</li>
-      <li>Move by clicking on a tile, or with WASD or arrow keys</li>
-      <li>
-        You can move, whenever you would be able to in the game (as accurately
-        as I could get it to work)
-      </li>
-    </ul>
-  </div>
+    <div class="drs-sidepane-row">
+      <h3>CONTROLS</h3>
+      <ul>
+        <li>Start the game with the button on top</li>
+        <li>Move by clicking on a tile, or with WASD or arrow keys</li>
+        <li>
+          You can move, whenever you would be able to in the game (as accurately
+          as I could get it to work)
+        </li>
+      </ul>
+    </div>
 
-  <div class="drs-credit">Created by: [Omega] Lumilyn Starbloom</div>
+    <div class="drs-credit">Created by: [Omega] Lumilyn Starbloom</div>
+  </div>
 </div>

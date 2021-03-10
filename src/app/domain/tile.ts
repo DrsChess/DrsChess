@@ -6,7 +6,11 @@ export class Tile {
   public explodingRow = false;
   public explodingCol = false;
 
-  constructor(public readonly row: number, public readonly col: number) {
+  constructor(
+    public readonly row: number,
+    public readonly col: number,
+    public readonly speedMultiplier: number
+  ) {
     const evenRow = this.row % 2 === 0;
     const evenCol = this.col % 2 === 0;
 
