@@ -110,32 +110,32 @@
           <img
             *ngIf="this.showDebuff1"
             [src]="this.imageSrc1"
-            style="display: table-cell; height: 26px"
+            style="display: table-cell; height: 32px"
           />
           <img
             *ngIf="this.showMove1"
             [src]="this.moveSrc1"
-            style="display: table-cell; height: 26px"
+            style="display: table-cell; height: 32px"
           />
           <img
             *ngIf="this.showDebuff2"
             [src]="this.imageSrc2"
-            style="display: table-cell; height: 26px"
+            style="display: table-cell; height: 32px"
           />
           <img
             *ngIf="this.showMove2"
             [src]="this.moveSrc2"
-            style="display: table-cell; height: 26px"
+            style="display: table-cell; height: 32px"
           />
           <img
             *ngIf="this.stunDuration >= 0"
             [src]="this.stunSrc"
-            style="display: table-cell; height: 26px"
+            style="display: table-cell; height: 32px"
           />
           <div
             *ngIf="this.showDebuff1 || this.showMove1"
             class="drs-debuff-timer"
-            style="left: 0px"
+            style="left: 1.5px"
           >
             {{ this.debuff1Duration }}
           </div>
@@ -143,7 +143,7 @@
             *ngIf="this.showDebuff2 || this.showMove2"
             class="drs-debuff-timer"
             [ngStyle]="{
-              left: this.showDebuff1 || this.showMove1 ? '20px' : '0px'
+              left: this.showDebuff1 || this.showMove1 ? '26px' : '1.5px'
             }"
           >
             {{ this.debuff2Duration }}
@@ -152,7 +152,7 @@
             *ngIf="this.stunDuration >= 0"
             class="drs-debuff-timer"
             [ngStyle]="{
-              left: this.showDebuff1 || this.showMove1 ? '40px' : '20px'
+              left: this.showDebuff1 || this.showMove1 ? '46px' : '26px'
             }"
           >
             {{ this.stunDuration }}
